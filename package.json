@@ -1,0 +1,17 @@
+{
+  "name": "inter-dimensional-tv",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.6.0"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

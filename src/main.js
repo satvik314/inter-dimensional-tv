@@ -51,6 +51,7 @@ app.innerHTML = `
         <div class="ctl">
           <button id="chUp" title="Previous channel [↑]">CH ▲</button>
           <button id="chDn" title="Next channel [↓]">CH ▼</button>
+          <button id="pause" title="Pause / play [space]">HOLD</button>
           <button id="mute" title="Sound">SOUND</button>
           <button id="cc" title="Subtitles (page 888)">888</button>
           <button id="again" title="Same dimension, new seed">NEXT EP</button>
@@ -75,7 +76,7 @@ app.innerHTML = `
     <div class="picture" id="picture">
       <span>PICTURE</span>
       ${ASPECTS.map((a) => `<button data-aspect="${a}">${a}</button>`).join('')}
-      <span class="hint">↑↓ CHANGE CHANNEL · ENTER SEND · SHIFT+ENTER NEWLINE</span>
+      <span class="hint">↑↓ CHANNEL · SPACE HOLD · ENTER SEND</span>
     </div>
     <div class="fastext">
       <button class="r" id="fRed">SURF <small>RANDOM CHANNEL</small></button>
@@ -107,7 +108,7 @@ const $ = (id) => document.getElementById(id)
 const el = {
   pageNo: $('pageNo'), dimName: $('dimName'), clock: $('clock'),
   screen: $('screen'), video: $('video'), static: $('static'), osd: $('osd'), captions: $('captions'),
-  now: $('now'), chUp: $('chUp'), chDn: $('chDn'), mute: $('mute'), cc: $('cc'), again: $('again'), dl: $('dl'),
+  now: $('now'), pause: $('pause'), chUp: $('chUp'), chDn: $('chDn'), mute: $('mute'), cc: $('cc'), again: $('again'), dl: $('dl'),
   guide: $('guide'), gcount: $('gcount'), fee: $('fee'),
   tx: $('tx'), prompt: $('prompt'), send: $('send'), picture: $('picture'),
   fRed: $('fRed'), fGreen: $('fGreen'), fYellow: $('fYellow'), fBlue: $('fBlue'),
@@ -243,7 +244,7 @@ function renderScreen() {
   osd([
     ['inv', ` ${c.page} · DIM ${c.dim}${c.episode > 1 ? ` · EP ${c.episode}` : ''} `],
   ])
-  setTimeout(() => { if (current()?.id === c.id && c.status === 'live') osd([]) }, 2600)
+  setTimeout(() => { if (current()?.id === c.id && c.status === 'live' && !el.video.paused) osd([]) }, 2600)
   if (state.captions && c.expandedPrompt) {
     el.captions.innerHTML = `<span>${esc(c.expandedPrompt)}</span>`
   }
@@ -254,6 +255,10 @@ function renderDeck() {
   el.now.innerHTML = c
     ? `NOW · <b>${esc(c.prompt)}</b>`
     : `NOW · <b>NOTHING. THE VOID.</b>`
+  const live = c && c.status === 'live'
+  el.pause.disabled = !live
+  el.pause.textContent = live && el.video.paused ? 'PLAY ▶' : 'HOLD ❚❚'
+  el.pause.classList.toggle('on', Boolean(live && el.video.paused))
   el.mute.textContent = state.muted ? 'SOUND OFF' : 'SOUND ON'
   el.mute.classList.toggle('on', !state.muted)
   el.cc.classList.toggle('on', Boolean(state.captions))
@@ -423,6 +428,25 @@ el.fBlue.addEventListener('click', () => {
   renderAll()
 })
 
+function togglePause() {
+  const c = current()
+  if (!c || c.status !== 'live') return
+  if (el.video.paused) el.video.play().catch(() => {})
+  else el.video.pause()
+}
+el.pause.addEventListener('click', togglePause)
+el.screen.addEventListener('click', togglePause)
+el.video.addEventListener('pause', () => {
+  const c = current()
+  if (c && c.status === 'live' && el.video.currentTime > 0) osd([['inv', ' HOLD ❚❚ '], ['y', `${c.page} · DIM ${c.dim}`]])
+  renderDeck()
+})
+el.video.addEventListener('play', () => {
+  const c = current()
+  if (c && c.status === 'live') osd([])
+  renderDeck()
+})
+
 el.chUp.addEventListener('click', () => step(-1))
 el.chDn.addEventListener('click', () => step(1))
 el.mute.addEventListener('click', () => {
@@ -486,6 +510,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp') { e.preventDefault(); step(-1) }
   else if (e.key === 'ArrowDown') { e.preventDefault(); step(1) }
   else if (e.key === '/') { e.preventDefault(); el.prompt.focus() }
+  else if (e.key === ' ') { e.preventDefault(); togglePause() }
 })
 
 el.video.addEventListener('error', () => {

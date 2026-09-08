@@ -145,6 +145,7 @@ a:hover { background: var(--cyn); color: var(--blk); }
   background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.55) 100%);
 }
 .screen[data-state="live"] canvas.static { display: none; }
+.screen[data-state="live"] { cursor: pointer; }
 .screen[data-state="tuning"] video,
 .screen[data-state="idle"] video,
 .screen[data-state="dead"] video { visibility: hidden; }

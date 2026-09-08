@@ -34,6 +34,7 @@ never leaves your browser except to call fal.ai directly.
 | --- | --- |
 | Enter | Transmit (Shift+Enter for a newline) |
 | ↑ / ↓ | Previous / next channel |
+| Space, HOLD button, or click the screen | Pause / resume the broadcast |
 | `/` | Focus the transmitter |
 | RED · SURF | Tune a random channel from a list of shows that don't exist |
 | GREEN · SEND | Same as Enter |
